@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityTrack - Public Transport System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .bus-animation {
+            animation: busMove 3s ease-in-out infinite;
+        }
+        
+        @keyframes busMove {
+            0%, 100% { transform: translateX(0px); }
+            50% { transform: translateX(10px); }
+        }
+        
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .route-line {
+            background: linear-gradient(90deg, #3B82F6 0%, #10B981 50%, #F59E0B 100%);
+            height: 4px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg border-b-4 border-blue-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-600 p-2 rounded-lg">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M4 16c0 .88.39 1.67 1 2.22V20a1 1 0 001 1h1a1 1 0 001-1v-1h8v1a1 1 0 001 1h1a1 1 0 001-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900">CityTrack</h1>
+                </div>
+                <div class="flex space-x-4">
+                    <button onclick="showSection('login')" id="loginBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            Login
+          </button>
+                    <button onclick="showSection('passenger')" id="passengerBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                        Passenger
+                    </button>
+                    <button onclick="showSection('driver')" id="driverBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                        Driver
+                    </button>
+                    <button onclick="showSection('admin')" id="adminBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                        Admin
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- Login Section -->
+  <section id="loginSection" class="section min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-500">
+    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm">
+      <h2 class="text-2xl font-bold text-center mb-6">CityTrack Login</h2>
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-gray-700">Email</label>
+          <input type="email" id="login-email" class="w-full p-2 border rounded-lg" placeholder="Enter your email" required>
+        </div>
+        <div>
+          <label class="block text-gray-700">Password</label>
+          <input type="password" id="login-password" class="w-full p-2 border rounded-lg" placeholder="Enter your password" required>
+        </div>
+        <div>
+          <label class="block text-gray-700">Role</label>
+          <select id="login-role" class="w-full p-2 border rounded-lg" required>
+            <option value="passenger">Passenger</option>
+            <option value="driver">Driver</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700">Login</button>
+      </form>
+    </div>
+  </section>
+    <!-- Passenger Section -->
+     <!-- <button onclick="logout()" class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600">Logout</button> -->
+
+    <div id="passengerSection" class="section hidden">
+        <button onclick="logout()" class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600">Logout</button>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Hero Section -->
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Track Your Bus in Real-Time</h2>
+                <p class="text-xl text-gray-600 mb-8">Never miss your bus again with live tracking and accurate arrival times</p>
+                
+                <!-- Quick Search -->
+                <div class="max-w-md mx-auto">
+                    <div class="relative">
+                        <input type="text" id="routeSearch" placeholder="Search route (e.g., Route 101)" 
+                               class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none text-lg">
+                        <svg class="absolute left-4 top-4 w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
+                        </svg>
+                    </div>
+                    <button onclick="searchRoute()" class="w-full mt-4 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition-colors font-semibold">
+                        Track Bus
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live Bus Tracking -->
+            <div class="grid md:grid-cols-2 gap-8 mb-12">
+               <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Live Route Map</h3>
+                    <div class="bg-gray-100 rounded-xl p-6 h-80 relative overflow-hidden">
+                        <!-- Simulated Map -->
+                        <div class="absolute inset-0 bg-gradient-to-br from-green-100 to-blue-100 rounded-xl">
+                            <!-- Route Line -->
+                            <div class="absolute top-20 left-4 right-4 route-line"></div>
+                            
+                            <!-- Bus Stops -->
+                            <div class="absolute top-16 left-8 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                <div class="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                            <div class="absolute top-16 left-32 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                <div class="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                            <div class="absolute top-16 right-32 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+                                <div class="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                            <div class="absolute top-16 right-8 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                                <div class="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                            
+                            <!-- Moving Bus -->
+                            <div class="absolute top-12 left-20 bus-animation">
+                                <div class="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-semibold">
+                                    🚌 Route 101
+                                </div>
+                            </div>
+                            
+                            <!-- Location Labels -->
+                            <div class="absolute top-28 left-4 text-xs font-medium text-gray-700">Central Station</div>
+                            <div class="absolute top-28 left-28 text-xs font-medium text-gray-700">Market Square</div>
+                            <div class="absolute top-28 right-36 text-xs font-medium text-gray-700">University</div>
+                            <div class="absolute top-28 right-4 text-xs font-medium text-gray-700">Mall</div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Bus Information -->
+                <div class="space-y-6">
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">Next Arrivals</h3>
+                        <div id="arrivalsList" class="space-y-4">
+                            <!-- Dynamic content will be inserted here -->
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Route Status</h3>
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="pulse-dot w-3 h-3 bg-green-500 rounded-full"></div>
+                            <span class="text-green-700 font-semibold">Service Running Normally</span>
+                        </div>
+                        <p class="text-gray-600">All buses on Route 101 are operating on schedule</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popular Routes -->
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6">Popular Routes</h3>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div onclick="selectRoute('101')" class="cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all">
+                        <div class="font-bold text-lg">Route 101</div>
+                        <div class="text-blue-100">Central ↔ Mall</div>
+                        <div class="text-sm text-blue-200 mt-2">Next: 3 min</div>
+                    </div>
+                    <div onclick="selectRoute('205')" class="cursor-pointer bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all">
+                        <div class="font-bold text-lg">Route 205</div>
+                        <div class="text-green-100">Airport ↔ City</div>
+                        <div class="text-sm text-green-200 mt-2">Next: 7 min</div>
+                    </div>
+                    <div onclick="selectRoute('312')" class="cursor-pointer bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all">
+                        <div class="font-bold text-lg">Route 312</div>
+                        <div class="text-purple-100">Hospital ↔ Station</div>
+                        <div class="text-sm text-purple-200 mt-2">Next: 12 min</div>
+                    </div>
+                    <div onclick="selectRoute('450')" class="cursor-pointer bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all">
+                        <div class="font-bold text-lg">Route 450</div>
+                        <div class="text-orange-100">University ↔ Tech Park</div>
+                        <div class="text-sm text-orange-200 mt-2">Next: 5 min</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Driver Section -->
+     
+
+    <div id="driverSection" class="section hidden">
+        <button onclick="logout()" class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600">Logout</button>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center mb-8">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Driver Dashboard</h2>
+                <p class="text-xl text-gray-600">Manage your route and update passenger information</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Driver Status -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-6">Current Route Status</h3>
+                        
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-blue-50 p-4 rounded-xl">
+                                <div class="text-blue-600 font-semibold mb-2">Current Route</div>
+                                <div class="text-2xl font-bold text-blue-900">Route 101</div>
+                                <div class="text-blue-700">Central Station ↔ Shopping Mall</div>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-xl">
+                                <div class="text-green-600 font-semibold mb-2">Next Stop</div>
+                                <div class="text-2xl font-bold text-green-900">Market Square</div>
+                                <div class="text-green-700">ETA: 4 minutes</div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <button onclick="updateLocation()" class="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition-colors font-semibold">
+                                📍 Update Current Location
+                            </button>
+                            
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <button onclick="reportDelay()" class="bg-yellow-500 text-white py-3 rounded-xl hover:bg-yellow-600 transition-colors font-semibold">
+                                    ⚠️ Report Delay
+                                </button>
+                                <button onclick="reportIssue()" class="bg-red-500 text-white py-3 rounded-xl hover:bg-red-600 transition-colors font-semibold">
+                                    🚨 Report Issue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Route Progress -->
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Route Progress</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-4 h-4 bg-green-500 rounded-full"></div>
+                                <div class="flex-1">
+                                    <div class="font-semibold">Central Station</div>
+                                    <div class="text-sm text-gray-600">Departed: 2:15 PM</div>
+                                </div>
+                                <div class="text-green-600 font-semibold">✓</div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="w-4 h-4 bg-blue-500 rounded-full pulse-dot"></div>
+                                <div class="flex-1">
+                                    <div class="font-semibold">Market Square</div>
+                                    <div class="text-sm text-gray-600">Current location</div>
+                                </div>
+                                <div class="text-blue-600 font-semibold">📍</div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="w-4 h-4 bg-gray-300 rounded-full"></div>
+                                <div class="flex-1">
+                                    <div class="font-semibold text-gray-500">University</div>
+                                    <div class="text-sm text-gray-400">ETA: 2:35 PM</div>
+                                </div>
+                                <div class="text-gray-400">⏱️</div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="w-4 h-4 bg-gray-300 rounded-full"></div>
+                                <div class="flex-1">
+                                    <div class="font-semibold text-gray-500">Shopping Mall</div>
+                                    <div class="text-sm text-gray-400">ETA: 2:50 PM</div>
+                                </div>
+                                <div class="text-gray-400">🏁</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Driver Controls -->
+                <div class="space-y-6">
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <button onclick="startShift()" class="w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition-colors font-semibold">
+                                🚀 Start Shift
+                            </button>
+                            <button onclick="takeBreak()" class="w-full bg-orange-500 text-white py-3 rounded-xl hover:bg-orange-600 transition-colors font-semibold">
+                                ☕ Take Break
+                            </button>
+                            <button onclick="endShift()" class="w-full bg-gray-600 text-white py-3 rounded-xl hover:bg-gray-700 transition-colors font-semibold">
+                                🏠 End Shift
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Passenger Count</h3>
+                        <div class="text-center mb-4">
+                            <div class="text-4xl font-bold text-blue-600" id="passengerCount">23</div>
+                            <div class="text-gray-600">Current passengers</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="addPassenger()" class="bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors">
+                                + Add
+                            </button>
+                            <button onclick="removePassenger()" class="bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors">
+                                - Remove
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Messages</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="bg-blue-50 p-3 rounded-lg">
+                                <div class="font-semibold text-blue-900">Dispatch</div>
+                                <div class="text-blue-700">Heavy traffic on Main St. Consider alternate route.</div>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded-lg">
+                                <div class="font-semibold text-green-900">System</div>
+                                <div class="text-green-700">Route updated successfully</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Section -->
+   
+
+    <div id="adminSection" class="section hidden">
+        <button onclick="logout()" class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600">Logout</button>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center mb-8">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Admin Dashboard</h2>
+                <p class="text-xl text-gray-600">Monitor and manage the entire transport network</p>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="grid md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-blue-600">24</div>
+                    <div class="text-gray-600 font-semibold">Active Buses</div>
+                    <div class="text-sm text-green-600 mt-1">↗️ +2 from yesterday</div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-green-600">1,247</div>
+                    <div class="text-gray-600 font-semibold">Daily Passengers</div>
+                    <div class="text-sm text-green-600 mt-1">↗️ +156 from yesterday</div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-purple-600">12</div>
+                    <div class="text-gray-600 font-semibold">Active Routes</div>
+                    <div class="text-sm text-gray-500 mt-1">→ No change</div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-orange-600">94%</div>
+                    <div class="text-gray-600 font-semibold">On-Time Rate</div>
+                    <div class="text-sm text-green-600 mt-1">↗️ +3% from yesterday</div>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Fleet Management -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold text-gray-900">Fleet Status</h3>
+                            <button onclick="refreshFleet()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b-2 border-gray-200">
+                                        <th class="text-left py-3 font-semibold text-gray-700">Bus ID</th>
+                                        <th class="text-left py-3 font-semibold text-gray-700">Route</th>
+                                        <th class="text-left py-3 font-semibold text-gray-700">Status</th>
+                                        <th class="text-left py-3 font-semibold text-gray-700">Passengers</th>
+                                        <th class="text-left py-3 font-semibold text-gray-700">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fleetTable">
+                                    <!-- Dynamic content will be inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Route Management -->
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-6">Route Management</h3>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Route Number</label>
+                                <input type="text" id="newRouteNumber" placeholder="e.g., 501" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Route Name</label>
+                                <input type="text" id="newRouteName" placeholder="e.g., Airport Express" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Route Description</label>
+                            <input type="text" id="newRouteDesc" placeholder="e.g., Airport ↔ City Center via Highway" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none">
+                        </div>
+                        
+                        <button onclick="addRoute()" class="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                            ➕ Add New Route
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Control Panel -->
+                <div class="space-y-6">
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">System Controls</h3>
+                        <div class="space-y-3">
+                            <button onclick="emergencyStop()" class="w-full bg-red-600 text-white py-3 rounded-xl hover:bg-red-700 transition-colors font-semibold">
+                                🚨 Emergency Stop All
+                            </button>
+                            <button onclick="sendBroadcast()" class="w-full bg-orange-500 text-white py-3 rounded-xl hover:bg-orange-600 transition-colors font-semibold">
+                                📢 Send Broadcast
+                            </button>
+                            <button onclick="generateReport()" class="w-full bg-purple-600 text-white py-3 rounded-xl hover:bg-purple-700 transition-colors font-semibold">
+                                📊 Generate Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Recent Alerts</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="bg-red-50 p-3 rounded-lg border-l-4 border-red-500">
+                                <div class="font-semibold text-red-900">Bus 101-A</div>
+                                <div class="text-red-700">Mechanical issue reported</div>
+                                <div class="text-red-600 text-xs mt-1">5 min ago</div>
+                            </div>
+                            <div class="bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-500">
+                                <div class="font-semibold text-yellow-900">Route 205</div>
+                                <div class="text-yellow-700">Traffic delay on Main St</div>
+                                <div class="text-yellow-600 text-xs mt-1">12 min ago</div>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded-lg border-l-4 border-green-500">
+                                <div class="font-semibold text-green-900">System</div>
+                                <div class="text-green-700">All routes updated successfully</div>
+                                <div class="text-green-600 text-xs mt-1">1 hour ago</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Performance</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600">On-Time Performance</span>
+                                    <span class="font-semibold">94%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-500 h-2 rounded-full" style="width: 94%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600">Fleet Utilization</span>
+                                    <span class="font-semibold">87%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-500 h-2 rounded-full" style="width: 87%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600">Passenger Satisfaction</span>
+                                    <span class="font-semibold">91%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-purple-500 h-2 rounded-full" style="width: 91%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:5000/api";
+
+        // Simulated backend data storage
+        let busData = {
+            routes: {
+                '101': { name: 'Central ↔ Mall', buses: ['101-A', '101-B'], status: 'active' },
+                '205': { name: 'Airport ↔ City', buses: ['205-A'], status: 'active' },
+                '312': { name: 'Hospital ↔ Station', buses: ['312-A', '312-B'], status: 'active' },
+                '450': { name: 'University ↔ Tech Park', buses: ['450-A'], status: 'active' }
+            },
+            buses: {
+                '101-A': { route: '101', passengers: 23, status: 'active', location: 'Market Square', delay: 0 },
+                '101-B': { route: '101', passengers: 18, status: 'active', location: 'University', delay: 2 },
+                '205-A': { route: '205', passengers: 31, status: 'active', location: 'Airport', delay: 0 },
+                '312-A': { route: '312', passengers: 15, status: 'maintenance', location: 'Depot', delay: 0 },
+                '312-B': { route: '312', passengers: 27, status: 'active', location: 'Hospital', delay: 5 },
+                '450-A': { route: '450', passengers: 22, status: 'active', location: 'Tech Park', delay: 1 }
+            },
+            arrivals: [
+                { route: '101', destination: 'Market Square', time: '3 min', status: 'on-time' },
+                { route: '205', destination: 'Airport Terminal', time: '7 min', status: 'on-time' },
+                { route: '450', destination: 'University Gate', time: '5 min', status: 'on-time' },
+                { route: '312', destination: 'Hospital Main', time: '12 min', status: 'delayed' }
+            ]
+        };
+
+        // Current section management
+       let currentSection = 'login';
+
+        // Show specific section
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            
+            // Show selected section
+            document.getElementById(section + 'Section').classList.remove('hidden');
+            
+            // Update navigation buttons
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            
+            document.getElementById(section + 'Btn').classList.remove('bg-gray-200', 'text-gray-700');
+            document.getElementById(section + 'Btn').classList.add('bg-blue-600', 'text-white');
+            
+            currentSection = section;
+            
+            // Initialize section-specific content
+            if (section === 'passenger') {
+                fetchArrivals();
+            } else if (section === 'admin') {
+                 fetchFleet();
+        fetchRoutes();
+            }
+        }
+        async function fetchArrivals() {
+    try {
+        const res = await fetch(`${API_BASE}/passenger/arrivals`);
+        const data = await res.json();
+        updateArrivals(data);
+    } catch (err) {
+        showNotification("Failed to fetch arrivals", "error");
+    }
+}
+
+async function searchBus() {
+    const query = document.getElementById("bus-search").value;
+    try {
+        const res = await fetch(`${API_BASE}/passenger/search?route=${query}`);
+        const data = await res.json();
+        updateSearchResults(data);
+    } catch (err) {
+        showNotification("Error searching bus", "error");
+    }
+}
+
+
+        // Passenger functions
+        function searchRoute() {
+            const query = document.getElementById('routeSearch').value;
+            if (query) {
+                selectRoute(query.replace('Route ', '').replace('route ', ''));
+            }
+        }
+
+        function selectRoute(routeId) {
+            if (busData.routes[routeId]) {
+                document.getElementById('routeSearch').value = `Route ${routeId}`;
+                updateArrivals(routeId);
+                showNotification(`Tracking Route ${routeId}`, 'success');
+            } else {
+                showNotification('Route not found', 'error');
+            }
+        }
+
+        function updateArrivals(arrivals) {
+    const list = document.getElementById("arrival-list");
+    list.innerHTML = "";
+    arrivals.forEach(bus => {
+        const li = document.createElement("li");
+        li.className = "bg-white shadow p-2 rounded-lg";
+        li.textContent = `Bus ${bus.number} - Arriving in ${bus.eta} mins`;
+        list.appendChild(li);
+    });
+}
+
+function updateSearchResults(results) {
+    const list = document.getElementById("search-results");
+    list.innerHTML = "";
+    results.forEach(bus => {
+        const li = document.createElement("li");
+        li.className = "bg-white shadow p-2 rounded-lg";
+        li.textContent = `Bus ${bus.number} - Status: ${bus.status}`;
+        list.appendChild(li);
+    });
+}
+
+function updateFleet(fleet) {
+    const list = document.getElementById("fleet-list");
+    list.innerHTML = "";
+    fleet.forEach(bus => {
+        const li = document.createElement("li");
+        li.className = "bg-white shadow p-2 rounded-lg";
+        li.textContent = `Bus ${bus.number} - Status: ${bus.status}`;
+        list.appendChild(li);
+    });
+}
+
+function updateRoutes(routes) {
+    const list = document.getElementById("route-list");
+    list.innerHTML = "";
+    routes.forEach(route => {
+        const li = document.createElement("li");
+        li.className = "bg-white shadow p-2 rounded-lg";
+        li.textContent = `Route ${route.number}: ${route.stops.join(", ")}`;
+        list.appendChild(li);
+    });
+}
+function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    showSection("login");
+}
+
+
+
+        // Driver functions
+        let currentPassengerCount = 23;
+
+       async function updateLocation() {
+    const lat = (Math.random() * 90).toFixed(2);
+    const lon = (Math.random() * 90).toFixed(2);
+
+    try {
+        const res = await fetch(`${API_BASE}/driver/update-location`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ busId: "101-A", lat, lon })
+        });
+
+        if (res.ok) {
+            showNotification("Location updated successfully", "success");
+        } else {
+            showNotification("Failed to update location", "error");
+        }
+    } catch (err) {
+        showNotification("Server error updating location", "error");
+    }
+}
+
+
+        function reportDelay() {
+            const delay = prompt('Enter delay in minutes:');
+            if (delay && !isNaN(delay)) {
+                busData.buses['101-A'].delay = parseInt(delay);
+                showNotification(`Delay of ${delay} minutes reported`, 'warning');
+            }
+        }
+
+        function reportIssue() {
+            const issue = prompt('Describe the issue:');
+            if (issue) {
+                showNotification('Issue reported to dispatch', 'info');
+            }
+        }
+
+        function startShift() {
+            showNotification('Shift started - Good luck!', 'success');
+        }
+
+        function takeBreak() {
+            showNotification('Break mode activated', 'info');
+        }
+
+        function endShift() {
+            showNotification('Shift ended - Drive safe!', 'success');
+        }
+
+       async function updatePassengerCount() {
+    const count = Math.floor(Math.random() * 50);
+    try {
+        const res = await fetch(`${API_BASE}/driver/update-passengers`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ busId: "101-A", passengers: count })
+        });
+
+        if (res.ok) {
+            showNotification(`Passenger count updated: ${count}`, "success");
+        }
+    } catch (err) {
+        showNotification("Failed to update passenger count", "error");
+    }
+}
+        function addPassenger() {
+            currentPassengerCount++;
+            document.getElementById('passengerCount').textContent = currentPassengerCount;
+            updatePassengerCount();
+        }
+        function removePassenger() {
+            if (currentPassengerCount > 0) {
+                currentPassengerCount--;
+                document.getElementById('passengerCount').textContent = currentPassengerCount;
+                updatePassengerCount();
+            }
+        }     
+
+        // Admin functions
+        async function fetchFleet() {
+    try {
+        const res = await fetch(`${API_BASE}/admin/fleet`);
+        const data = await res.json();
+        updateFleet(data);
+    } catch (err) {
+        showNotification("Error fetching fleet", "error");
+    }
+}
+
+async function fetchRoutes() {
+    try {
+        const res = await fetch(`${API_BASE}/admin/routes`);
+        const data = await res.json();
+        updateRoutes(data);
+    } catch (err) {
+        showNotification("Error fetching routes", "error");
+    }
+}
+document.getElementById("add-route-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const number = document.getElementById("route-number").value;
+    const stops = document.getElementById("route-stops").value.split(",");
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/routes`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ number, stops })
+        });
+
+        if (res.ok) {
+            showNotification("Route added successfully", "success");
+            fetchRoutes();
+        }
+    } catch (err) {
+        showNotification("Error adding route", "error");
+    }
+});
+
+
+        function updateFleetTable() {
+            const fleetTable = document.getElementById('fleetTable');
+            const buses = Object.entries(busData.buses);
+            
+            fleetTable.innerHTML = buses.map(([busId, bus]) => `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 font-semibold">${busId}</td>
+                    <td class="py-3">${bus.route}</td>
+                    <td class="py-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold ${
+                            bus.status === 'active' ? 'bg-green-100 text-green-800' :
+                            bus.status === 'maintenance' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                        }">
+                            ${bus.status}
+                        </span>
+                    </td>
+                    <td class="py-3">${bus.passengers}</td>
+                    <td class="py-3">
+                        <button onclick="manageBus('${busId}')" class="text-blue-600 hover:text-blue-800 font-semibold">
+                            Manage
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function refreshFleet() {
+            updateFleetTable();
+            showNotification('Fleet data refreshed', 'success');
+        }
+
+        function manageBus(busId) {
+            showNotification(`Managing bus ${busId}`, 'info');
+        }
+
+        function addRoute() {
+            
+            const number = document.getElementById('newRouteNumber').value;
+            const name = document.getElementById('newRouteName').value;
+            const desc = document.getElementById('newRouteDesc').value;
+            
+            if (number && name && desc) {
+                busData.routes[number] = { name: desc, buses: [], status: 'active' };
+                showNotification(`Route ${number} added successfully`, 'success');
+                
+                // Clear form
+                document.getElementById('newRouteNumber').value = '';
+                document.getElementById('newRouteName').value = '';
+                document.getElementById('newRouteDesc').value = '';
+            } else {
+                showNotification('Please fill all fields', 'error');
+            }
+        }
+
+        function emergencyStop() {
+            if (confirm('Are you sure you want to stop all buses? This is for emergency use only.')) {
+                showNotification('Emergency stop activated for all buses', 'error');
+            }
+        }
+
+        function sendBroadcast() {
+            const message = prompt('Enter broadcast message:');
+            if (message) {
+                showNotification('Broadcast sent to all drivers', 'success');
+            }
+        }
+
+        function generateReport() {
+            showNotification('Generating system report...', 'info');
+            setTimeout(() => {
+                showNotification('Report generated and saved', 'success');
+            }, 2000);
+        }
+
+        // Utility functions
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-semibold z-50 ${
+                type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' :
+                type === 'warning' ? 'bg-yellow-500' :
+                'bg-blue-500'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Simulate real-time updates
+        function simulateRealTimeUpdates() {
+            setInterval(() => {
+                // Update arrival times
+                busData.arrivals.forEach(arrival => {
+                    let currentTime = parseInt(arrival.time);
+                    if (currentTime > 1) {
+                        arrival.time = (currentTime - 1) + ' min';
+                    } else {
+                        arrival.time = Math.floor(Math.random() * 15 + 3) + ' min';
+                    }
+                });
+                
+                // Update arrivals display if on passenger section
+                if (currentSection === 'passenger') {
+                    updateArrivals();
+                }
+            }, 60000); // Update every minute
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection('login');
+            simulateRealTimeUpdates();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a770ea00e29a5e',t:'MTc1NzA5MzI4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+
+</body>
+</html>
